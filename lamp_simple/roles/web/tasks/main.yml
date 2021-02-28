@@ -1,3 +1,38 @@
 ---
-- include: install_httpd.yml
-- include: copy_code.yml
+- name: Install LAMP stack
+    yum:
+    name: "{{ item }}"
+      state: latest
+      loop: "{{ packages }}"
+
+- name: Create virtualhost config
+    template:
+         src:       
+         dest: 
+         mode: 0644
+         owner: apache
+         group: apache
+         notify: Restart apache
+
+
+- name: Create site directory
+    file:
+    path: "{{ directory }}"
+    state: directory
+    owner: apache
+    group: apache
+   iiode: 0644
+
+ - name: copy index.html
+     copy:
+       src: ./templates/index.html
+       dest: "{{ directory }}/index.html"
+       owner: apache
+       group: apache
+       mode: 0644
+
+ - name: Apache server started and enabled
+     service:
+       name: httpd
+       state: started
+       enabled: yes

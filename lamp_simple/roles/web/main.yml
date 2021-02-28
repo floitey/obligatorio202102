@@ -1,0 +1,10 @@
+i---
+  packages:
+    - httpd
+    - mariadb-server
+    - mariadb
+    - php
+
+  site: 
+  servername: 
+  directory: 
