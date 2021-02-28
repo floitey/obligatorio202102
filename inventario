@@ -1,0 +1,9 @@
+[ubuntu]
+UbuntuClient ansible_host=192.168.56.110
+
+[centos]
+CentosClient ansible_host=192.168.56.109
+
+[linux:children]
+ubuntu
+centos
