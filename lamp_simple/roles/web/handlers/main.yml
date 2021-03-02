@@ -2,7 +2,20 @@
 # Handler for the webtier: handlers are called by other plays.
 # See http://docs.ansible.com/playbooks_intro.html for more information about handlers.
 
-- name: restart iptables
+
+  name: start httpd 
   service:
-    name: iptables
-    state: restarted
+      name: httpd
+      state: enabled
+      enabled: yes
+
+  name: reload firewall
+  service:
+      name: firewalld
+      state: reloaded
+
+  name: reload ufw
+  service: 
+      name: ufw
+      state: reloaded
+

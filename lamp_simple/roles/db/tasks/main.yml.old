@@ -5,11 +5,9 @@
   yum:
     name: "{{ item }}"
     state: installed
-  
-  packages
-   - mariadb-server
-   - mariadb
-   - php
+  with_items:
+   - mysql-server
+   - MySQL-python
    - libselinux-python
    - libsemanage-python
 
@@ -20,27 +18,27 @@
     persistent: yes
   when: sestatus.rc != 0
 
-- name: Create Mariadb configuration file
+- name: Create Mysql configuration file
   template:
     src: my.cnf.j2
     dest: /etc/my.cnf
-  notify: restart mariadb
+  notify:
+  - restart mysql
 
 - name: Start Mysql Service
   service:
-    name: mariadb
+    name: mysqld
     state: started
     enabled: yes
 
-- name: open firewall for mariadb in Redhat
-  firewalld:
-     service: mariadb
-     zone: public
-     permanent: true
-     state: reloaded
- when: ansible_os_family == "RedHat"
- notify: "reload firewalld"
-
+- name: insert iptables rule
+  lineinfile:
+    dest: /etc/sysconfig/iptables
+    state: present
+    regexp: "{{ mysql_port }}"
+    insertafter: "^:OUTPUT "
+    line: "-A INPUT -p tcp  --dport {{ mysql_port }} -j  ACCEPT"
+  notify: restart iptables
 
 - name: Create Application Database
   mysql_db:
