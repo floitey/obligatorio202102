@@ -1,26 +1,32 @@
 ---
 # This playbook will install mysql and create db user and give permissions.
 
-- name: Install Mysql package
-  yum:
-    name: "{{ item }}"
-    state: installed
-  
-  packages
-   - mariadb-server
-   - mariadb
-   - php
-   - libselinux-python
-   - libsemanage-python
+- name: install php on centos
+  yum: 
+    name: php
+    state: latest
+    when: ansible_os_family == "RedHat"  
 
-- name: Configure SELinux to start mysql on any port
-  seboolean:
-    name: mysql_connect_any
-    state: true
-    persistent: yes
-  when: sestatus.rc != 0
+- name: install mariadb server on centos
+  yum: 
+    name: mariadb-server
+    state: present
+    when: ansible_os_family == "RedHat"
 
-- name: Create Mariadb configuration file
+- name: install php on centos
+    apt:
+      name: php
+      state: latest
+      when: ansible_os_family == "Debian"
+
+- name: install mariadb server on centos
+    apt:
+      name: mariadb-server
+      state: present
+      when: ansible_os_family == "RedHat"
+
+
+- name: Create Mysql configuration file
   template:
     src: my.cnf.j2
     dest: /etc/my.cnf
@@ -31,6 +37,7 @@
     name: mariadb
     state: started
     enabled: yes
+    notify: restart mariadb
 
 - name: open firewall for mariadb in Redhat
   firewalld:
@@ -40,6 +47,15 @@
      state: reloaded
  when: ansible_os_family == "RedHat"
  notify: "reload firewalld"
+
+- name: open firewall for mariadb in Redhat
+    firewalld:
+       service: mariadb
+       zone: public
+       permanent: true
+       state: reloaded
+       when: ansible_os_family == "Debian"
+       notify: "reload ufw"
 
 
 - name: Create Application Database

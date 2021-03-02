@@ -1,12 +1,17 @@
 ---
 # Handler to handle DB tier notifications
 
-- name: restart mysql
+- name: restart mariadb
   service:
-    name: mysqld
+    name: mariadb
     state: restarted
 
-- name: restart iptables
+- name: reload firewalld
   service:
-    name: iptables
-    state: restarted
+    name: firewalld
+    state: reloaded
+    
+- name: reaload ufw
+  service:
+    name: ufw
+    state: reloaded

@@ -11,13 +11,13 @@
  
 
 - name: open firewall for httpd in Redhat
-     firewalld:
-         service: http
-         zone: public
-         permanent: true
-         state: reloaded
-     when: ansible_os_family == "RedHat"
-     notify: "reload firewalld"
+  firewalld:
+    service: http
+    zone: public
+    permanent: true
+    state: reloaded
+  when: ansible_os_family == "RedHat"
+  notify: "reload firewalld"
 
 - name: httpd service state
   service:
@@ -35,9 +35,9 @@
   when: sestatus.rc != 0
   when: ansible_os_family == "RedHat" 
 
-- name: open firewall for httpd in Debian
+- name: open firewall for http in Debian
   ufw: 
-    service: ufw allow httpd
+    service: ufw 
     zone: public
     permanent: true
     state: restarted
