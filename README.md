@@ -17,13 +17,13 @@ Rol simple para despliegue de stack LAMP.
 
 
 - name: open firewall for httpd in Redhat
-     firewalld:
-         service: http
-         zone: public
-         permanent: true
-         state: reloaded
-     when: ansible_os_family == "RedHat"
-     notify: "reload firewalld"
+  firewalld:
+    service: http
+    zone: public
+    permanent: true
+    state: reloaded
+  when: ansible_os_family == "RedHat"
+  notify: "reload firewalld"
 
 - name: httpd service state
   service:
@@ -41,9 +41,9 @@ Rol simple para despliegue de stack LAMP.
   when: sestatus.rc != 0
   when: ansible_os_family == "RedHat"
 
-- name: open firewall for httpd in Debian
+- name: open firewall for http in Debian
   ufw:
-    service: ufw allow httpd
+    service: ufw
     zone: public
     permanent: true
     state: restarted
@@ -51,7 +51,7 @@ Rol simple para despliegue de stack LAMP.
   notify: "reload ufw"
   
   4- floitey se configuran los handlers involucrados para el servicio httpd.
-  [ansible@AnsibleServer handlers]$ cat main.yml
+[ansible@AnsibleServer handlers]$ cat main.yml
 ---
 # Handler for the webtier: handlers are called by other plays.
 # See http://docs.ansible.com/playbooks_intro.html for more information about handlers.
@@ -72,3 +72,143 @@ Rol simple para despliegue de stack LAMP.
   service:
       name: ufw
       state: reloaded
+ 5- floitey se configuran tasks para MariaDB
+ [ansible@AnsibleServer tasks]$ cat main.yml
+---
+# This playbook will install mysql and create db user and give permissions.
+
+- name: install php on centos
+  yum:
+    name: php
+    state: latest
+    when: ansible_os_family == "RedHat"
+
+- name: install mariadb server on centos
+  yum:
+    name: mariadb-server
+    state: present
+    when: ansible_os_family == "RedHat"
+
+- name: install php on centos
+    apt:
+      name: php
+      state: latest
+      when: ansible_os_family == "Debian"
+
+- name: install mariadb server on centos
+    apt:
+      name: mariadb-server
+      state: present
+      when: ansible_os_family == "RedHat"
+
+
+- name: Create Mysql configuration file
+  template:
+    src: my.cnf.j2
+    dest: /etc/my.cnf
+  notify: restart mariadb
+
+- name: Start Mysql Service
+  service:
+    name: mariadb
+    state: started
+    enabled: yes
+    notify: restart mariadb
+
+- name: open firewall for mariadb in Redhat
+  firewalld:
+     service: mariadb
+     zone: public
+     permanent: true
+     state: reloaded
+ when: ansible_os_family == "RedHat"
+ notify: "reload firewalld"
+
+- name: open firewall for mariadb in Redhat
+    firewalld:
+       service: mariadb
+       zone: public
+       permanent: true
+       state: reloaded
+       when: ansible_os_family == "Debian"
+       notify: "reload ufw"
+
+6- floitey se configuran handlers para mariaDB
+[ansible@AnsibleServer tasks]$ cat main.yml
+---
+# This playbook will install mysql and create db user and give permissions.
+
+- name: install php on centos
+  yum:
+    name: php
+    state: latest
+    when: ansible_os_family == "RedHat"
+
+- name: install mariadb server on centos
+  yum:
+    name: mariadb-server
+    state: present
+    when: ansible_os_family == "RedHat"
+
+- name: install php on centos
+    apt:
+      name: php
+      state: latest
+      when: ansible_os_family == "Debian"
+
+- name: install mariadb server on centos
+    apt:
+      name: mariadb-server
+      state: present
+      when: ansible_os_family == "RedHat"
+
+
+- name: Create Mysql configuration file
+  template:
+    src: my.cnf.j2
+    dest: /etc/my.cnf
+  notify: restart mariadb
+
+- name: Start Mysql Service
+  service:
+    name: mariadb
+    state: started
+    enabled: yes
+    notify: restart mariadb
+
+- name: open firewall for mariadb in Redhat
+  firewalld:
+     service: mariadb
+     zone: public
+     permanent: true
+     state: reloaded
+ when: ansible_os_family == "RedHat"
+ notify: "reload firewalld"
+
+- name: open firewall for mariadb in Redhat
+    firewalld:
+       service: mariadb
+       zone: public
+       permanent: true
+       state: reloaded
+       when: ansible_os_family == "Debian"
+       notify: "reload ufw"
+       
+7- floitey se configuran archivos ansible.cfg y hosts para relacionar los roles con la correcta sintaxis para ejecución
+Ansible.cfg
+inventory      = ./hosts
+
+[ansible@AnsibleServer lamp_simple]$ cat hosts
+[ubuntu]
+UbuntuClient ansible_host=192.168.56.110
+
+[centos]
+CentosClient ansible_host=192.168.56.109
+
+[linux:children]
+ubuntu
+centos
+
+8- floitey se ejecuta pull final para consolidar los cambios y bajar un versionado actualizado en archivo .zip
+
+ 
